@@ -1,1 +1,1 @@
-testinputfile
+this is a test to see if its ok with longer messages

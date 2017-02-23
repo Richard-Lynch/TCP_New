@@ -82,8 +82,9 @@ def grem():
 
 
 def on_con(clientSocket, address):
-    with open(fileName) as f:
+    with open(fileNameIn) as f:
         loop = 0
+        last_seq = -1
         not_end = True
         while not_end:
             c = f.read(2)
@@ -93,6 +94,7 @@ def on_con(clientSocket, address):
                 temp = Frame()
                 temp.setSeq(loop)
                 temp.addPayload("")
+                temp.data['start'] = "e"
                 frame_buff.insert(0, temp)
                 last_seq = loop
                 cur_temp = temp.prepSend(grem())
@@ -119,7 +121,7 @@ def on_con(clientSocket, address):
             cur_temp = temp.prepSend(grem())
             print "sent >> ", cur_temp
             clientSocket.send(cur_temp)
-            time.sleep(1)
+            time.sleep(0.05)
             while RETRANS:
                 fix = 1
             # clientSocket.send(capitalizedSentence)
@@ -129,6 +131,8 @@ def on_con(clientSocket, address):
 def on_ack(clientSocket, address):
     buff = []
     buff_index = 0
+    notDone = True
+    last_seq = -1
     while notDone:
         # print "test"
         sentence = clientSocket.recv(1024)  # receive packets
@@ -179,6 +183,10 @@ def on_ack(clientSocket, address):
                         buff_index -= 1
                     elif buff[i].data['start'] == 'e':
                         notDone = False
+                        buff.pop(i)
+                        frame_buff.pop(j)
+                        buff_index -= 1
+                        
                     else:
                         RETRANS = True
                         cur_temp = frame_buff[j].prepSend(grem())
@@ -203,12 +211,13 @@ def on_ack(clientSocket, address):
 #     ct.run()
 # random.seed
 serverName = 'localhost'
-serverPort = 12011
-fileName = 'input.txt'
+serverPort = 12012
+fileNameIn = 'input.txt'
 list1 = ['', '', '', '', '', '', '', '']
 c = ''
 RETRANS = False
 notDone = True
+last_seq = -1
 
 frame_buff = []
 # create a NET, streaming socket
